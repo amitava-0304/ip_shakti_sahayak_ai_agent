@@ -1,0 +1,4057 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>AyurSetu Agentic RAG</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    
+    <style>
+        :root {
+            --bg-1: #0f172a;
+            --bg-2: #111827;
+            --panel: rgba(255,255,255,.92);
+            --panel-soft: rgba(255,255,255,.78);
+            --text: #172033;
+            --muted: #64748b;
+            --line: rgba(148,163,184,.22);
+            --indigo: #6366f1;
+            --violet: #8b5cf6;
+            --teal: #14b8a6;
+            --emerald: #10b981;
+            --orange: #f97316;
+            --shadow: 0 24px 70px rgba(15,23,42,.18);
+            --radius-xl: 30px;
+            --radius-lg: 22px;
+            --radius-md: 16px;
+        }
+
+        * { box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(circle at 10% 15%, rgba(99,102,241,.38), transparent 25%),
+                radial-gradient(circle at 88% 10%, rgba(20,184,166,.30), transparent 25%),
+                radial-gradient(circle at 80% 88%, rgba(139,92,246,.24), transparent 24%),
+                linear-gradient(145deg, #0b1020, #121a2e 45%, #101827);
+            background-attachment: fixed;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background:
+                linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+            background-size: 36px 36px;
+        }
+
+        button, input, select { font: inherit; }
+
+        .app-container {
+            width: min(95%, 1320px);
+            margin: 28px auto;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,.14);
+            border-radius: 34px;
+            background: rgba(248,250,252,.94);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(20px);
+        }
+
+        /* HEADER */
+
+        .header {
+            position: relative;
+            padding: 30px 34px;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 24px;
+            align-items: center;
+            color: white;
+            background:
+                linear-gradient(115deg, rgba(79,70,229,.98), rgba(109,40,217,.94) 48%, rgba(13,148,136,.92));
+            overflow: hidden;
+        }
+
+        .header::after {
+            content: "";
+            position: absolute;
+            inset: auto -70px -120px auto;
+            width: 280px;
+            height: 280px;
+            border-radius: 50%;
+            background: rgba(255,255,255,.12);
+        }
+
+        .header::before {
+            content: "";
+            position: absolute;
+            width: 170px;
+            height: 170px;
+            left: 44%;
+            top: -100px;
+            border-radius: 50%;
+            background: rgba(45,212,191,.20);
+        }
+
+        .header > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: clamp(2.1rem, 4vw, 3.25rem);
+            line-height: 1;
+            letter-spacing: -0.045em;
+        }
+
+        .header p {
+            margin: 10px 0 0;
+            color: rgba(255,255,255,.88);
+            font-size: 1.02rem;
+        }
+
+        .language-box {
+            display: grid;
+            grid-template-columns: auto minmax(130px, 1fr);
+            gap: 9px;
+            align-items: center;
+            min-width: 245px;
+            padding: 11px 12px;
+            border: 1px solid rgba(255,255,255,.25);
+            border-radius: 16px;
+            background: rgba(255,255,255,.12);
+            backdrop-filter: blur(14px);
+        }
+
+        .language-box label {
+            font-size: .88rem;
+            font-weight: 800;
+        }
+
+        .language-box select {
+            width: 100%;
+            border: 0;
+            outline: 0;
+            padding: 10px 12px;
+            border-radius: 10px;
+            background: white;
+            color: #111827;
+            cursor: pointer;
+        }
+
+        .main {
+            padding: 30px;
+        }
+
+        /* WELCOME */
+
+        .welcome {
+            position: relative;
+            margin: 0 0 26px;
+            padding: 30px;
+            border: 1px solid var(--line);
+            border-radius: var(--radius-lg);
+            background:
+                linear-gradient(145deg, rgba(255,255,255,.98), rgba(241,245,249,.90));
+            text-align: left;
+            overflow: hidden;
+        }
+
+        .welcome::after {
+            content: "AI";
+            position: absolute;
+            right: 28px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 7rem;
+            font-weight: 900;
+            letter-spacing: -.08em;
+            color: rgba(99,102,241,.055);
+            pointer-events: none;
+        }
+
+        .welcome h2 {
+            position: relative;
+            z-index: 1;
+            margin: 0 0 10px;
+            font-size: clamp(2rem, 4vw, 3rem);
+            letter-spacing: -0.04em;
+            color: #172033;
+        }
+
+        .welcome p {
+            position: relative;
+            z-index: 1;
+            max-width: 760px;
+            margin: 0;
+            color: var(--muted);
+            line-height: 1.75;
+            font-size: 1.04rem;
+        }
+
+        /* FEATURES */
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+            margin: 0 0 28px;
+        }
+
+        .feature-card {
+            min-height: 145px;
+            padding: 20px;
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            background: white;
+            box-shadow: 0 10px 26px rgba(15,23,42,.06);
+            transition: .2s ease;
+        }
+
+        .feature-card:nth-child(1) { border-top: 4px solid #6366f1; }
+        .feature-card:nth-child(2) { border-top: 4px solid #10b981; }
+        .feature-card:nth-child(3) { border-top: 4px solid #8b5cf6; }
+        .feature-card:nth-child(4) { border-top: 4px solid #f97316; }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 18px 36px rgba(15,23,42,.10);
+        }
+
+        .feature-card h3 {
+            margin: 0 0 9px;
+            color: #312e81;
+            font-size: 1.03rem;
+        }
+
+        .feature-card p {
+            margin: 0;
+            color: var(--muted);
+            line-height: 1.6;
+            font-size: .93rem;
+        }
+
+        /* QUICK QUESTIONS */
+
+        .quick-section {
+            margin: 0 0 26px;
+            padding: 22px;
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            background: #ffffff;
+        }
+
+        .quick-section h3 {
+            margin: 0 0 14px;
+            font-size: 1.1rem;
+            color: #172033;
+        }
+
+        .quick-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 9px;
+        }
+
+        .quick-btn {
+            padding: 10px 14px;
+            border: 1px solid #e0e7ff;
+            border-radius: 12px;
+            background: #f8faff;
+            color: #4338ca;
+            cursor: pointer;
+            font-weight: 750;
+        }
+
+        .quick-btn:hover {
+            color: white;
+            border-color: transparent;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            transform: translateY(-2px);
+        }
+
+        /* UPLOAD */
+
+        .upload-section {
+            width: min(100%, 760px);
+            margin: 28px auto;
+            padding: 28px;
+            border: 1px solid rgba(20,184,166,.25);
+            border-radius: 22px;
+            background:
+                linear-gradient(135deg, #f0fdfa, #f8fafc);
+            text-align: center;
+            box-shadow: 0 14px 34px rgba(15,23,42,.06);
+        }
+
+        .upload-section h3 {
+            margin: 0 0 8px;
+            color: #0f766e;
+            font-size: 1.2rem;
+        }
+
+        .upload-section p {
+            color: var(--muted);
+            margin-bottom: 16px;
+        }
+
+        #fileUpload {
+            display: block;
+            width: min(100%, 560px);
+            margin: 0 auto;
+            padding: 11px;
+            border: 1px solid #d7e4e2;
+            border-radius: 12px;
+            background: white;
+        }
+
+        .upload-btn,
+        .clear-btn {
+            margin-top: 14px;
+            padding: 11px 17px;
+            border: 0;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 800;
+        }
+
+        .upload-btn {
+            color: white;
+            background: linear-gradient(135deg, #0f766e, #10b981);
+        }
+
+        .clear-btn {
+            margin-left: 7px;
+            color: #475569;
+            background: #e9eef5;
+        }
+
+        /* ASK */
+
+        .question-section {
+            position: relative;
+            margin-top: 28px;
+            padding: 28px;
+            border-radius: 24px;
+            background:
+                linear-gradient(135deg, #1e1b4b, #312e81 55%, #0f766e);
+            box-shadow: 0 20px 44px rgba(49,46,129,.18);
+            color: white;
+        }
+
+        .question-title {
+            margin: 0 0 17px;
+            color: white;
+            font-size: 1.35rem;
+        }
+
+        .question-row {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 11px;
+        }
+
+        #questionInput {
+            width: 100%;
+            padding: 16px 17px;
+            border: 1px solid rgba(255,255,255,.20);
+            border-radius: 14px;
+            outline: 0;
+            color: #111827;
+            background: rgba(255,255,255,.97);
+            box-shadow: 0 7px 20px rgba(0,0,0,.08);
+        }
+
+        #questionInput:focus {
+            box-shadow: 0 0 0 4px rgba(167,139,250,.22);
+        }
+
+        .ask-btn {
+            min-width: 135px;
+            padding: 15px 22px;
+            border: 0;
+            border-radius: 14px;
+            color: #312e81;
+            background: white;
+            cursor: pointer;
+            font-weight: 900;
+            box-shadow: 0 8px 22px rgba(0,0,0,.12);
+        }
+
+        .ask-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .question-section .clear-btn {
+            color: rgba(255,255,255,.9);
+            background: rgba(255,255,255,.12);
+            border: 1px solid rgba(255,255,255,.16);
+        }
+
+        .status {
+            margin-top: 13px;
+            color: rgba(255,255,255,.78);
+            text-align: left;
+        }
+
+        /* RESPONSE */
+
+        .response-card {
+            display: none;
+            width: min(100%, 1120px);
+            margin: 30px auto 0;
+            padding: 40px 46px;
+            border: 1px solid var(--line);
+            border-radius: 26px;
+            background: white;
+            box-shadow: 0 18px 46px rgba(15,23,42,.10);
+        }
+
+        .response-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 14px;
+            margin-bottom: 18px;
+            border-bottom: 1px solid #eef2f7;
+        }
+
+        .response-header h3 {
+            margin: 0;
+            color: #312e81;
+            font-size: 1.45rem;
+        }
+
+        #responseArea {
+            width: 100%;
+            color: #334155;
+            line-height: 1.95;
+            font-size: 1.04rem;
+        }
+
+        #responseArea p {
+            margin: 0 0 1.25em;
+            text-align: justify;
+            text-justify: inter-word;
+            hyphens: auto;
+        }
+
+        #responseArea ul,
+        #responseArea ol {
+            padding-left: 1.6rem;
+            margin: 0 0 1.25em;
+        }
+
+        #responseArea h1,
+        #responseArea h2,
+        #responseArea h3 {
+            color: #3730a3;
+            margin-top: 1.35em;
+        }
+
+        #responseArea strong {
+            color: #4338ca;
+        }
+
+        #responseArea li {
+            margin-bottom: 7px;
+        }
+
+        .language-display,
+        .provider-display {
+            display: inline-flex;
+            margin-top: 16px;
+            padding: 7px 11px;
+            border-radius: 999px;
+            font-weight: 800;
+            font-size: .86rem;
+        }
+
+        .language-display {
+            color: #92400e;
+            background: #fff7ed;
+        }
+
+        .provider-display {
+            margin-left: 7px;
+            color: #166534;
+            background: #ecfdf5;
+        }
+
+        .ai-disclaimer {
+            margin-top: 18px;
+            padding: 13px 15px;
+            border-radius: 13px;
+            color: #854d0e;
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            font-size: .9rem;
+            line-height: 1.6;
+        }
+
+        /* CENTRE SEARCH */
+
+        .centre-section {
+            margin-top: 32px;
+            padding: 28px;
+            border: 1px solid var(--line);
+            border-radius: 24px;
+            background: #ffffff;
+            box-shadow: 0 14px 34px rgba(15,23,42,.06);
+        }
+
+        .centre-heading {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 22px;
+            text-align: left;
+        }
+
+        .centre-icon {
+            width: 58px;
+            height: 58px;
+            display: grid;
+            place-items: center;
+            border-radius: 18px;
+            font-size: 30px;
+            background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+        }
+
+        .centre-heading h2 {
+            margin: 0;
+            color: #064e3b;
+            font-size: 1.75rem;
+        }
+
+        .centre-heading p {
+            margin: 5px 0 0;
+            color: var(--muted);
+        }
+
+        .centre-search-row {
+            display: grid;
+            grid-template-columns: 1fr auto auto auto;
+            gap: 9px;
+        }
+
+        #centreLocation {
+            min-width: 0;
+            padding: 14px 15px;
+            border: 1px solid #d9e2ea;
+            border-radius: 13px;
+            outline: 0;
+            background: #f8fafc;
+        }
+
+        #centreLocation:focus {
+            border-color: #14b8a6;
+            box-shadow: 0 0 0 4px rgba(20,184,166,.10);
+        }
+
+        .centre-search-btn,
+        .near-me-btn,
+        .centre-clear-btn {
+            padding: 13px 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 800;
+        }
+
+        .centre-search-btn {
+            border: 0;
+            color: white;
+            background: linear-gradient(135deg, #0f766e, #10b981);
+        }
+
+        .near-me-btn {
+            color: #0f766e;
+            border: 1px solid #a7f3d0;
+            background: #ecfdf5;
+        }
+
+        .centre-clear-btn {
+            color: #475569;
+            border: 1px solid #dbe3ec;
+            background: #f8fafc;
+        }
+
+        .centre-rules {
+            margin-top: 14px;
+            padding: 12px 14px;
+            border-radius: 12px;
+            color: var(--muted);
+            background: #f8fafc;
+            font-size: .9rem;
+        }
+
+        .centre-rules strong {
+            color: #0f766e;
+        }
+
+        .centre-status {
+            margin-top: 15px;
+            color: var(--muted);
+            text-align: left;
+        }
+
+        .centre-results {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+            gap: 14px;
+            margin-top: 22px;
+        }
+
+        .centre-card {
+            padding: 19px;
+            border: 1px solid var(--line);
+            border-radius: 17px;
+            background: #fbfefd;
+            transition: .2s ease;
+        }
+
+        .centre-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 14px 28px rgba(15,23,42,.08);
+        }
+
+        .centre-card h3 {
+            margin: 0 0 10px;
+            color: #0f766e;
+        }
+
+        .centre-info {
+            margin-bottom: 8px;
+            color: #475569;
+            line-height: 1.5;
+        }
+
+        .rating {
+            display: inline-block;
+            padding: 5px 8px;
+            border-radius: 8px;
+            background: #fff7ed;
+            color: #b45309;
+            font-weight: 800;
+        }
+
+        .centre-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 13px;
+        }
+
+        .direction-btn,
+        .website-btn {
+            display: inline-block;
+            padding: 8px 11px;
+            border-radius: 9px;
+            text-decoration: none;
+            font-weight: 800;
+            font-size: .86rem;
+        }
+
+        .direction-btn {
+            color: white;
+            background: #4f46e5;
+        }
+
+        .website-btn {
+            color: #166534;
+            background: #ecfdf5;
+        }
+
+        /* MAP */
+
+        .map-section {
+            margin-top: 24px;
+            padding: 18px;
+            border-radius: 18px;
+            border: 1px solid var(--line);
+            background: #f8fafc;
+        }
+
+        .map-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 13px;
+        }
+
+        .map-header h3 {
+            margin: 0;
+            color: #0f766e;
+        }
+
+        .map-header p {
+            margin: 5px 0 0;
+            color: var(--muted);
+        }
+
+        .search-map {
+            width: 100%;
+            height: 430px;
+            border: 0;
+            border-radius: 14px;
+            background: #e5e7eb;
+        }
+
+        .map-open-btn {
+            padding: 10px 14px;
+            border: 0;
+            border-radius: 11px;
+            color: white;
+            background: linear-gradient(135deg, #4f46e5, #6366f1);
+            cursor: pointer;
+            font-weight: 800;
+        }
+
+        /* SOURCES */
+
+        .sources-section {
+            display: none;
+            margin-top: 26px;
+            padding-top: 22px;
+            border-top: 1px solid #e7ecf3;
+        }
+
+        .sources-section h3 {
+            color: #172033;
+        }
+
+        .source-card {
+            margin-bottom: 14px;
+            padding: 17px;
+            border: 1px solid var(--line);
+            border-radius: 15px;
+            background: #f8fafc;
+        }
+
+        .source-number {
+            display: inline-block;
+            margin-bottom: 10px;
+            padding: 5px 10px;
+            border-radius: 999px;
+            color: white;
+            background: #4f46e5;
+            font-size: .8rem;
+            font-weight: 800;
+        }
+
+        .source-file {
+            margin-bottom: 9px;
+            color: #0f766e;
+            font-weight: 800;
+        }
+
+        .source-category,
+        .source-page,
+        .source-type,
+        .source-similarity {
+            display: inline-block;
+            margin: 0 5px 7px 0;
+            padding: 5px 8px;
+            border-radius: 999px;
+            font-size: .8rem;
+        }
+
+        .source-category { background: #faf5ff; color: #7e22ce; }
+        .source-page { background: #fff7ed; color: #c2410c; }
+        .source-type { background: #ecfdf5; color: #166534; }
+        .source-similarity { background: #eff6ff; color: #1d4ed8; }
+
+        .source-toggle {
+            display: block;
+            margin-top: 7px;
+            padding: 8px 12px;
+            border: 0;
+            border-radius: 9px;
+            color: white;
+            background: #4f46e5;
+            cursor: pointer;
+            font-weight: 800;
+        }
+
+        .source-text {
+            display: none;
+            margin-top: 10px;
+            padding: 14px;
+            border: 1px solid #e2e8f0;
+            border-radius: 11px;
+            color: #334155;
+            background: white;
+            font-size: .91rem;
+            line-height: 1.7;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        /* STATUS / FOOTER */
+
+        .spinner {
+            width: 18px;
+            height: 18px;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 8px;
+            border: 3px solid rgba(255,255,255,.25);
+            border-top-color: currentColor;
+            border-radius: 50%;
+            animation: spin .75s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .error-box,
+        .success-box,
+        .warning-box {
+            padding: 12px 14px;
+            border-radius: 12px;
+        }
+
+        .error-box { color: #991b1b; background: #fef2f2; border: 1px solid #fecaca; }
+        .success-box { display: inline-block; color: #166534; background: #f0fdf4; border: 1px solid #bbf7d0; }
+        .warning-box { display: inline-block; color: #92400e; background: #fffbeb; border: 1px solid #fde68a; }
+
+        .footer {
+            margin-top: 36px;
+            padding: 22px;
+            text-align: center;
+            color: #64748b;
+            background: #f1f5f9;
+            border-top: 1px solid #e2e8f0;
+            line-height: 1.7;
+        }
+
+        .footer strong { color: #4338ca; }
+
+        .back-to-top {
+            position: fixed;
+            right: 22px;
+            bottom: 22px;
+            width: 48px;
+            height: 48px;
+            border: 0;
+            border-radius: 14px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            background: linear-gradient(135deg, #6366f1, #0f766e);
+            box-shadow: 0 14px 28px rgba(0,0,0,.22);
+            cursor: pointer;
+            z-index: 999;
+        }
+
+        @media (max-width: 980px) {
+            .features { grid-template-columns: repeat(2, 1fr); }
+            .centre-search-row { grid-template-columns: 1fr 1fr; }
+            #centreLocation { grid-column: 1 / -1; }
+        }
+
+        @media (max-width: 760px) {
+            .app-container {
+                width: 96%;
+                margin: 12px auto;
+                border-radius: 24px;
+            }
+
+            .header {
+                grid-template-columns: 1fr;
+                padding: 25px 20px;
+            }
+
+            .language-box { width: 100%; }
+
+            .main { padding: 20px 16px; }
+
+            .response-card {
+                width: 100%;
+                padding: 26px 20px;
+            }
+
+            .welcome { padding: 23px 20px; }
+            .welcome::after { display: none; }
+
+            .features { grid-template-columns: 1fr; }
+
+            .question-row { grid-template-columns: 1fr; }
+
+            .ask-btn { width: 100%; }
+
+            .centre-search-row { grid-template-columns: 1fr; }
+
+            #centreLocation { grid-column: auto; }
+
+            .centre-search-btn,
+            .near-me-btn,
+            .centre-clear-btn {
+                width: 100%;
+            }
+
+            .search-map { height: 330px; }
+
+            .map-header {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .map-open-btn { width: 100%; }
+        }
+    
+        /* =================================================
+           FIRST-TIME AGENTIC GUIDE
+        ================================================= */
+        .agent-guide {
+            margin: 28px 0;
+            padding: 26px;
+            border: 1px solid rgba(99,102,241,.16);
+            border-radius: 22px;
+            background: linear-gradient(135deg, rgba(238,242,255,.96), rgba(240,253,250,.96));
+            box-shadow: 0 12px 30px rgba(15,23,42,.06);
+        }
+        .agent-guide-heading {
+            display: flex;
+            justify-content: space-between;
+            gap: 18px;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            margin-bottom: 18px;
+        }
+        .agent-guide-heading h3 { margin:0; color:#312e81; font-size:1.35rem; }
+        .agent-guide-heading p { margin:7px 0 0; color:#64748b; line-height:1.6; }
+        .agent-badge { padding:7px 11px; border-radius:999px; color:#166534; background:#ecfdf5; font-size:.82rem; font-weight:800; }
+        .agent-topic-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:12px; }
+        .agent-topic-card { padding:16px; border:1px solid rgba(148,163,184,.20); border-radius:16px; background:rgba(255,255,255,.92); cursor:pointer; text-align:left; transition:.18s ease; }
+        .agent-topic-card:hover { transform:translateY(-3px); border-color:rgba(99,102,241,.32); box-shadow:0 12px 25px rgba(15,23,42,.08); }
+        .agent-topic-icon { display:block; margin-bottom:8px; font-size:1.45rem; }
+        .agent-topic-title { display:block; color:#1e293b; font-weight:800; }
+        .agent-help { margin-top:14px; color:#64748b; font-size:.9rem; }
+        .follow-up-section { display:none; margin-top:22px; padding-top:18px; border-top:1px solid #e5e7eb; }
+        .follow-up-section h4 { margin:0 0 12px; color:#334155; font-size:1rem; }
+        .follow-up-buttons {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+
+        .follow-up-btn {
+            width: 100%;
+            padding: 11px 14px;
+            border: 1px solid #dbe4ff;
+            border-radius: 12px;
+            color: #4338ca;
+            background: #f8faff;
+            cursor: pointer;
+            font-weight: 700;
+            text-align: left;
+            line-height: 1.45;
+            white-space: normal;
+        }
+
+        .follow-up-btn:hover {
+            color: white;
+            background: linear-gradient(135deg,#6366f1,#8b5cf6);
+        }
+        .agent-mode-display { display:inline-flex; margin-top:16px; margin-left:7px; padding:7px 11px; border-radius:999px; color:#3730a3; background:#eef2ff; font-weight:800; font-size:.86rem; }
+
+    </style>
+
+
+</head>
+
+
+<body>
+
+
+<div class="app-container">
+
+
+    <!-- =================================================
+         HEADER
+    ================================================= -->
+
+    <div class="header">
+
+        <div>
+
+            <h1>
+                🌿 AyurSetu Agentic RAG
+            </h1>
+<br>
+            <div style="
+                margin-top: 8px;
+                font-size: 0.98rem;
+                font-weight: 600;
+                opacity: 0.82;
+            ">
+                Connecting Traditional Wisdom with Modern AI
+            </div>
+
+
+            <p>
+                Multilingual AI Assistant — Connecting Knowledge, Tradition & Technology
+            </p>
+
+        </div>
+
+
+        <div class="language-box">
+
+            <label>
+                🌐 Language
+            </label>
+
+            <select id="language">
+
+                <option value="English">
+                    English
+                </option>
+
+                <option value="Bengali">
+                    বাংলা
+                </option>
+
+                <option value="Hindi">
+                    हिन्दी
+                </option>
+
+            </select>
+
+        </div>
+
+    </div>
+
+
+    <div class="main">
+
+
+        <!-- =================================================
+             WELCOME
+        ================================================= -->
+
+        <div class="welcome">
+
+            <h2>
+                How can I help you?
+            </h2>
+
+            <p>
+                Ask questions about patents,
+                trademarks, copyright,
+                WIPO, Ayurveda and
+                traditional knowledge.
+            </p>
+
+        </div>
+
+
+        <!-- =================================================
+             FEATURES
+        ================================================= -->
+
+        <div class="features">
+
+            <div class="feature-card">
+
+                <h3>
+                    📘 Intellectual Property
+                </h3>
+
+                <p>
+                    Learn about patents,
+                    trademarks and copyright.
+                </p>
+
+            </div>
+
+
+            <div class="feature-card">
+
+                <h3>
+                    🌿 Ayurveda
+                </h3>
+
+                <p>
+                    Explore Ayurveda and
+                    traditional knowledge.
+                </p>
+
+            </div>
+
+
+            <div class="feature-card">
+
+                <h3>
+                    🌍 International IP
+                </h3>
+
+                <p>
+                    Explore WIPO and
+                    international IP systems.
+                </p>
+
+            </div>
+
+
+            <div class="feature-card">
+
+                <h3>
+                    📄 Upload Document
+                </h3>
+
+                <p>
+                    Upload PDF, TXT or DOCX.
+                    Documents become searchable.
+                </p>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- =================================================
+             FIRST-TIME AGENTIC GUIDE
+        ================================================= -->
+        <div class="agent-guide" id="agentGuide">
+            <div class="agent-guide-heading">
+                <div>
+                    <h3>🧭 What would you like to explore?</h3>
+                    <p>
+                        New to AyurSetu Agentic RAG? Choose a topic below or type your own question.
+                        The AI agent decides whether a simple search or a deeper multi-step
+                        document search is needed.
+                    </p>
+                </div>
+                <div class="agent-badge">🧠 Agentic RAG</div>
+            </div>
+            <div class="agent-topic-grid" id="agentTopicGrid">
+                <button class="agent-topic-card" onclick="startGuidedQuestion('What is a patent and why is it important?')"><span class="agent-topic-icon">📘</span><span class="agent-topic-title">Patents</span></button>
+                <button class="agent-topic-card" onclick="startGuidedQuestion('What is a trademark?')"><span class="agent-topic-icon">™️</span><span class="agent-topic-title">Trademarks</span></button>
+                <button class="agent-topic-card" onclick="startGuidedQuestion('What is copyright?')"><span class="agent-topic-icon">©️</span><span class="agent-topic-title">Copyright</span></button>
+                <button class="agent-topic-card" onclick="startGuidedQuestion('What is PATENTSCOPE and how is it useful?')"><span class="agent-topic-icon">🌍</span><span class="agent-topic-title">WIPO &amp; PATENTSCOPE</span></button>
+                <button class="agent-topic-card" onclick="startGuidedQuestion('What is Ayurveda?')"><span class="agent-topic-icon">🌿</span><span class="agent-topic-title">Ayurveda</span></button>
+                <button class="agent-topic-card" onclick="startGuidedQuestion('What is traditional knowledge?')"><span class="agent-topic-icon">📜</span><span class="agent-topic-title">Traditional Knowledge</span></button>
+                <button class="agent-topic-card" onclick="startGuidedQuestion('What information is available in my uploaded documents?')"><span class="agent-topic-icon">📄</span><span class="agent-topic-title">Uploaded Documents</span></button>
+            </div>
+            <div class="agent-help">
+                📍 Looking for an Ayurveda centre? Use the separate <strong>Find Ayurveda Centres</strong> section below.
+                Location search is not mixed into normal knowledge questions unless you explicitly request it.
+            </div>
+        </div>
+
+
+        <!-- =================================================
+             QUICK QUESTIONS
+        ================================================= -->
+
+        <div class="quick-section">
+
+            <h3>
+                ⚡ Quick Questions
+            </h3>
+
+
+            <div class="quick-buttons">
+
+                <button
+                    class="quick-btn"
+                    onclick="fillQuestion('What is a patent?')">
+                    Patent
+                </button>
+
+                <button
+                    class="quick-btn"
+                    onclick="fillQuestion('What is WIPO?')">
+                    WIPO
+                </button>
+
+                <button
+                    class="quick-btn"
+                    onclick="fillQuestion('What is a trademark?')">
+                    Trademark
+                </button>
+
+                <button
+                    class="quick-btn"
+                    onclick="fillQuestion('What is traditional knowledge?')">
+                    Traditional Knowledge
+                </button>
+
+                <button
+                    class="quick-btn"
+                    onclick="fillQuestion('How are Ayurveda and intellectual property related?')">
+                    Ayurveda & IP
+                </button>
+
+                <button
+                    class="quick-btn"
+                    onclick="fillQuestion('What is copyright?')">
+                    Copyright
+                </button>
+
+                <button
+                    class="quick-btn"
+                    onclick="fillQuestion('What is PATENTSCOPE?')">
+                    PATENTSCOPE
+                </button>
+
+                <button
+                    class="quick-btn"
+                    onclick="fillQuestion('What is the Madrid System?')">
+                    Madrid System
+                </button>
+
+            </div>
+
+        </div></div>
+
+
+        <!-- =================================================
+             ASK QUESTION
+        ================================================= -->
+
+        <div class="question-section">
+
+            <h3 class="question-title">
+                🤖 Ask AyurSetu Agentic RAG
+            </h3>
+
+            <div class="question-row">
+
+                <input
+                    type="text"
+                    id="questionInput"
+                    placeholder="Ask your question here..."
+                >
+
+                <button
+                    type="button"
+                    id="askQuestionBtn"
+                    class="ask-btn"
+                    onclick="askQuestion(); return false;">
+                    Ask ➜
+                </button>
+
+            </div>
+
+            <button
+                type="button"
+                id="clearQuestionBtn"
+                class="clear-btn"
+                onclick="clearQuestion(); return false;">
+                Clear Question
+            </button>
+
+            <div
+                id="questionStatus"
+                class="status">
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             UPLOAD DOCUMENT
+        ================================================= -->
+
+        <!-- =================================================
+             UPLOAD
+        ================================================= -->
+
+        <div class="upload-section">
+
+            <h3>
+                📤 Upload Document
+            </h3>
+
+            <p>
+                Upload a PDF, TXT or DOCX file.
+                The file automatically becomes searchable.
+            </p>
+
+            <input
+                type="file"
+                id="fileUpload"
+                accept=".pdf,.txt,.docx"
+            >
+
+            <br>
+
+            <button
+                class="upload-btn"
+                onclick="uploadFile()">
+                ⬆ Upload & Index
+            </button>
+
+            <button
+                class="clear-btn"
+                onclick="clearUpload()">
+                Clear
+            </button>
+
+            <div
+                id="uploadStatus"
+                class="status">
+            </div>
+
+        </div>
+
+        <!-- =================================================
+             AI RESPONSE
+        ================================================= -->
+
+        <div
+            id="responseCard"
+            class="response-card">
+
+            <div class="response-header">
+
+                <h3>
+                    🤖 AyurSetu Agentic RAG
+                </h3>
+
+            </div>
+
+            <div id="responseArea">
+            </div>
+
+            <div
+                id="languageDisplay"
+                class="language-display">
+            </div>
+
+            <div
+                id="providerDisplay"
+                class="provider-display">
+            </div>
+
+            <div
+                id="agentModeDisplay"
+                class="agent-mode-display"
+                style="display:none;">
+            </div>
+
+            <div
+                id="followUpSection"
+                class="follow-up-section">
+                <h4>💡 You may also explore</h4>
+                <div id="followUpButtons" class="follow-up-buttons"></div>
+            </div>
+
+            <div class="ai-disclaimer">
+
+                ⚠️ AI-generated educational information.
+                For legal or medical decisions, consult
+                the appropriate qualified professional
+                or official authority.
+
+            </div>
+
+            <div
+                id="sourcesSection"
+                class="sources-section">
+
+                <h3>
+                    📚 Retrieved Sources
+                </h3>
+
+                <div id="sourcesArea">
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             AYURVEDA CENTRE SEARCH
+        ================================================= -->
+
+        <div class="centre-section">
+
+            <div class="centre-heading">
+
+                <div class="centre-icon">
+                    🌿
+                </div>
+
+                <div>
+
+                    <h2>
+                        Find Ayurveda Centres
+                    </h2>
+
+                    <p>
+                        Search Ayurveda centres by city,
+                        state or your current location.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="centre-search-row">
+
+                <input
+                    type="text"
+                    id="centreLocation"
+                    placeholder=
+                    "Example: Kolkata, Mumbai, Kerala, West Bengal..."
+                >
+
+                <button
+                    class="centre-search-btn"
+                    onclick="searchAyurvedaCentres()">
+                    🔍 Search
+                </button>
+
+                <button
+                    class="near-me-btn"
+                    onclick="searchNearMe()">
+                    📍 Near Me
+                </button>
+
+                <button
+                    class="centre-clear-btn"
+                    onclick="clearCentreSearch()">
+                    Clear
+                </button>
+
+            </div>
+
+
+            <div class="centre-rules">
+
+                <strong>
+                    Search:
+                </strong>
+
+                Enter a city or state.
+
+                &nbsp; | &nbsp;
+
+                <strong>
+                    Near Me:
+                </strong>
+
+                Search around your current location.
+
+            </div>
+
+
+            <div
+                id="centreStatus"
+                class="centre-status">
+            </div>
+
+
+            <div
+                id="centreResults"
+                class="centre-results">
+            </div>
+
+
+            <!-- =================================================
+                 MAP BELOW RESULTS
+            ================================================= -->
+
+            <div
+                id="mapSection"
+                class="map-section"
+                style="display:none;">
+
+                <div class="map-header">
+
+                    <div>
+
+                        <h3>
+                            🗺️ Search Map
+                        </h3>
+
+                        <p id="mapLocationText">
+                            Ayurveda centre location
+                        </p>
+
+                    </div>
+
+                    <button
+                        id="openMapButton"
+                        class="map-open-btn"
+                        onclick="openCurrentMap()">
+
+                        📍 Open in Google Maps
+
+                    </button>
+
+                </div>
+
+                <iframe
+                    id="searchMap"
+                    class="search-map"
+                    src=""
+                    loading="lazy"
+                    allowfullscreen
+                    referrerpolicy=
+                    "no-referrer-when-downgrade">
+                </iframe>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =================================================
+         FOOTER
+    ================================================= -->
+
+    <div class="footer">
+
+        <strong>
+            AyurSetu Agentic RAG
+        </strong>
+
+        <br>
+
+        AI-assisted Intellectual Property &
+        Ayurveda Knowledge System
+
+        <br>
+
+        Educational Project
+
+    </div>
+
+</div>
+
+
+<button
+    id="backToTop"
+    class="back-to-top"
+    onclick="scrollToTop()">
+    ↑
+</button>
+
+
+<script>
+
+
+    /* =====================================================
+       CONFIG
+    ===================================================== */
+
+    const API_URL = "";
+
+
+    let currentMapUrl =
+        "";
+
+
+    let lastCentreSearchLocation =
+        "";
+
+
+    /* =====================================================
+       QUICK QUESTIONS
+    ===================================================== */
+
+    function fillQuestion(text) {
+
+        const input =
+            document.getElementById(
+                "questionInput"
+            );
+
+        input.value =
+            text;
+
+        input.focus();
+
+        input.scrollIntoView({
+            behavior: "smooth",
+            block: "center"
+        });
+
+    }
+
+
+
+    /* =====================================================
+       AGENTIC FIRST-TIME GUIDE
+    ===================================================== */
+    function startGuidedQuestion(question) {
+        const input = document.getElementById("questionInput");
+        if (!input) return;
+        input.value = question;
+        input.scrollIntoView({ behavior: "smooth", block: "center" });
+        input.focus();
+    }
+
+    function displayAgentSuggestions(questions) {
+        const section = document.getElementById("followUpSection");
+        const box = document.getElementById("followUpButtons");
+        if (!section || !box) return;
+        box.innerHTML = "";
+        if (!questions || questions.length === 0) {
+            section.style.display = "none";
+            return;
+        }
+        questions.forEach(function(question, index) {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "follow-up-btn";
+            button.textContent = (index + 1) + ". " + question;
+            button.setAttribute(
+                "aria-label",
+                "Follow-up question " + (index + 1) + ": " + question
+            );
+            button.onclick = function() {
+                startGuidedQuestion(question);
+            };
+            box.appendChild(button);
+        });
+        section.style.display = "block";
+    }
+
+
+    /* =====================================================
+       CLEAR QUESTION
+    ===================================================== */
+
+    function clearQuestion() {
+
+        const questionInput =
+            document.getElementById(
+                "questionInput"
+            );
+
+        const questionStatus =
+            document.getElementById(
+                "questionStatus"
+            );
+
+        const responseArea =
+            document.getElementById(
+                "responseArea"
+            );
+
+        const sourcesArea =
+            document.getElementById(
+                "sourcesArea"
+            );
+
+        const sourcesSection =
+            document.getElementById(
+                "sourcesSection"
+            );
+
+        const responseCard =
+            document.getElementById(
+                "responseCard"
+            );
+
+        const languageDisplay =
+            document.getElementById(
+                "languageDisplay"
+            );
+
+        const providerDisplay =
+            document.getElementById(
+                "providerDisplay"
+            );
+
+        if (questionInput) {
+            questionInput.value = "";
+            questionInput.focus();
+        }
+
+        if (questionStatus) {
+            questionStatus.textContent = "";
+        }
+
+        if (responseArea) {
+            responseArea.innerHTML = "";
+        }
+
+        if (sourcesArea) {
+            sourcesArea.innerHTML = "";
+        }
+
+        if (sourcesSection) {
+            sourcesSection.style.display =
+                "none";
+        }
+
+        if (responseCard) {
+            responseCard.style.display =
+                "none";
+        }
+
+        if (languageDisplay) {
+            languageDisplay.textContent =
+                "";
+        }
+
+        if (providerDisplay) {
+            providerDisplay.textContent =
+                "";
+        }
+
+        const agentModeDisplay =
+            document.getElementById(
+                "agentModeDisplay"
+            );
+
+        if (agentModeDisplay) {
+            agentModeDisplay.textContent = "";
+            agentModeDisplay.style.display = "none";
+        }
+
+        displayAgentSuggestions([]);
+
+    }
+
+
+    /* =====================================================
+       ASK QUESTION
+    ===================================================== */
+
+    async function askQuestion() {
+
+        const questionInput =
+            document.getElementById(
+                "questionInput"
+            );
+
+        const languageSelect =
+            document.getElementById(
+                "language"
+            );
+
+        const responseCard =
+            document.getElementById(
+                "responseCard"
+            );
+
+        const responseArea =
+            document.getElementById(
+                "responseArea"
+            );
+
+        const status =
+            document.getElementById(
+                "questionStatus"
+            );
+
+        const languageDisplay =
+            document.getElementById(
+                "languageDisplay"
+            );
+
+        const providerDisplay =
+            document.getElementById(
+                "providerDisplay"
+            );
+
+        const sourcesSection =
+            document.getElementById(
+                "sourcesSection"
+            );
+
+        const sourcesArea =
+            document.getElementById(
+                "sourcesArea"
+            );
+
+        if (!questionInput) {
+            alert("Question input was not found.");
+            return;
+        }
+
+        const question =
+            questionInput.value.trim();
+
+        const language =
+            languageSelect
+            ? languageSelect.value
+            : "English";
+
+        if (!question) {
+            if (status) {
+                status.textContent =
+                    "Please enter a question.";
+            }
+            questionInput.focus();
+            return;
+        }
+
+        if (responseCard) {
+            responseCard.style.display =
+                "block";
+        }
+
+        if (responseArea) {
+            responseArea.innerHTML = `
+                <p>
+                    <span class="spinner"></span>
+                    🔎 Searching the knowledge base and generating an answer...
+                </p>
+            `;
+        }
+
+        if (status) {
+            status.innerHTML =
+                '<span class="spinner"></span>'
+                + 'Agent is planning and searching the knowledge base...';
+        }
+
+        if (providerDisplay) {
+            providerDisplay.textContent =
+                "";
+        }
+
+        if (sourcesSection) {
+            sourcesSection.style.display =
+                "none";
+        }
+
+        if (sourcesArea) {
+            sourcesArea.innerHTML =
+                "";
+        }
+
+        try {
+
+            const response =
+                await fetch(
+                    API_URL
+                    + "/api/agent-search",
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body:
+                            JSON.stringify({
+                                question:
+                                    question,
+                                language:
+                                    language
+                            })
+                    }
+                );
+
+            const rawText =
+                await response.text();
+
+            let data;
+
+            try {
+                data =
+                    JSON.parse(
+                        rawText
+                    );
+            }
+
+            catch (
+                parseError
+            ) {
+                throw new Error(
+                    "Backend returned invalid JSON. "
+                    + rawText.slice(0, 200)
+                );
+            }
+
+            if (!response.ok) {
+                throw new Error(
+                    data.error
+                    || (
+                        "HTTP "
+                        + response.status
+                    )
+                );
+            }
+
+            if (data.error) {
+
+                if (responseArea) {
+                    responseArea.innerHTML = `
+                        <div class="error-box">
+                            ❌ ${escapeHtml(
+                                data.error
+                            )}
+                        </div>
+                    `;
+                }
+
+                if (status) {
+                    status.textContent =
+                        "Request failed.";
+                }
+
+                return;
+            }
+
+            if (responseArea) {
+
+                if (data.answer) {
+
+                    const cleanAnswer =
+                        data.answer.replace(
+                            /\\\*/g,
+                            "*"
+                        );
+
+                    if (
+                        typeof marked
+                        !== "undefined"
+                        && marked.parse
+                    ) {
+                        responseArea.innerHTML =
+                            marked.parse(
+                                cleanAnswer
+                            );
+                    }
+
+                    else {
+                        responseArea.textContent =
+                            cleanAnswer;
+                    }
+
+                }
+
+                else {
+                    responseArea.innerHTML = `
+                        <div class="error-box">
+                            No answer was returned.
+                        </div>
+                    `;
+                }
+
+            }
+
+            if (languageDisplay) {
+                languageDisplay.textContent =
+                    "🌐 Language: "
+                    + (
+                        data.language
+                        || language
+                    );
+            }
+
+            if (providerDisplay) {
+                providerDisplay.textContent =
+                    data.provider
+                    ? (
+                        "⚡ AI Provider: "
+                        + data.provider
+                    )
+                    : "";
+            }
+
+            const agentModeDisplay =
+                document.getElementById(
+                    "agentModeDisplay"
+                );
+
+            if (
+                agentModeDisplay
+                && data.agentic
+            ) {
+                agentModeDisplay.style.display =
+                    "inline-flex";
+                agentModeDisplay.textContent =
+                    "🧠 Agent Mode: "
+                    + (
+                        data.agent_mode
+                        || "guided"
+                    );
+            }
+
+            displayAgentSuggestions(
+                data.suggested_questions
+                || []
+            );
+
+            displaySources(
+                data.sources
+                || []
+            );
+
+            if (status) {
+
+                const timing =
+                    data.timing
+                    || {};
+
+                if (
+                    timing.total_seconds
+                    !== undefined
+                ) {
+                    status.textContent =
+                        "✓ Answer generated. "
+                        + "Search: "
+                        + Number(
+                            timing.search_seconds
+                            || 0
+                        ).toFixed(2)
+                        + "s | AI: "
+                        + Number(
+                            timing.ai_seconds
+                            || 0
+                        ).toFixed(2)
+                        + "s | Total: "
+                        + Number(
+                            timing.total_seconds
+                            || 0
+                        ).toFixed(2)
+                        + "s";
+                }
+
+                else {
+                    status.textContent =
+                        "✓ Answer generated.";
+                }
+
+            }
+
+        }
+
+        catch (error) {
+
+            if (responseArea) {
+                responseArea.innerHTML = `
+                    <div class="error-box">
+                        ❌ Unable to complete search.
+                        ${escapeHtml(
+                            error.message
+                            || ""
+                        )}
+                    </div>
+                `;
+            }
+
+            if (status) {
+                status.textContent =
+                    "Backend connection failed.";
+            }
+
+            console.error(
+                "Ask button error:",
+                error
+            );
+
+        }
+
+    }
+
+
+    /* =====================================================
+       DISPLAY SOURCES
+    ===================================================== */
+
+    function displaySources(
+        sources
+    ) {
+
+        const section =
+            document.getElementById(
+                "sourcesSection"
+            );
+
+
+        const area =
+            document.getElementById(
+                "sourcesArea"
+            );
+
+
+        area.innerHTML =
+            "";
+
+
+        if (
+            !sources
+            ||
+            sources.length === 0
+        ) {
+
+            section.style.display =
+                "none";
+
+            return;
+
+        }
+
+
+        section.style.display =
+            "block";
+
+
+        sources.forEach(
+
+            function(
+                source,
+                index
+            ) {
+
+                const card =
+                    document.createElement(
+                        "div"
+                    );
+
+
+                card.className =
+                    "source-card";
+
+
+                const sourceName =
+                    source.source
+                    ||
+                    "Unknown Document";
+
+
+                const category =
+                    source.category
+                    ||
+                    "general";
+
+
+                const page =
+                    source.page
+                    ||
+                    "Unknown";
+
+
+                const text =
+                    source.text
+                    ||
+                    "";
+
+
+                const relevance =
+                    source.relevance_score;
+
+
+                const uploaded =
+                    source.uploaded === true;
+
+
+                const sourceType =
+                    uploaded
+                    ? "📤 User Uploaded Document"
+                    : "📚 Main Knowledge Base";
+
+
+                const textId =
+                    "sourceText"
+                    + index;
+
+
+                let similarityHtml =
+                    "";
+
+
+                if (
+                    relevance !== undefined
+                    &&
+                    relevance !== null
+                    &&
+                    !Number.isNaN(
+                        Number(relevance)
+                    )
+                ) {
+
+                    const percent =
+                        Math.max(
+                            0,
+                            Math.min(
+                                100,
+                                Number(relevance) * 100
+                            )
+                        ).toFixed(1);
+
+
+                    similarityHtml = `
+                        <span class="source-similarity">
+                            🎯 Similarity: ${percent}%
+                        </span>
+                    `;
+
+                }
+
+
+                card.innerHTML = `
+
+                    <div class="source-number">
+                        Source ${index + 1}
+                    </div>
+
+                    <div class="source-file">
+                        📄 ${escapeHtml(sourceName)}
+                    </div>
+
+                    <div>
+
+                        <span class="source-type">
+                            ${escapeHtml(sourceType)}
+                        </span>
+
+                        <span class="source-category">
+                            🗂 ${escapeHtml(category)}
+                        </span>
+
+                        <span class="source-page">
+                            📖 Page ${escapeHtml(String(page))}
+                        </span>
+
+                        ${similarityHtml}
+
+                    </div>
+
+                    <button
+                        class="source-toggle"
+                        onclick="
+                            toggleSource(
+                                '${textId}',
+                                this
+                            )
+                        ">
+
+                        View Retrieved Text
+
+                    </button>
+
+                    <div
+                        class="source-text"
+                        id="${textId}">
+
+                        ${escapeHtml(text)}
+
+                    </div>
+
+                `;
+
+
+                area.appendChild(
+                    card
+                );
+
+            }
+
+        );
+
+    }
+
+
+    /* =====================================================
+       TOGGLE SOURCE
+    ===================================================== */
+
+    function toggleSource(
+        id,
+        button
+    ) {
+
+        const element =
+            document.getElementById(
+                id
+            );
+
+
+        if (
+            element.style.display
+            === "block"
+        ) {
+
+            element.style.display =
+                "none";
+
+            button.textContent =
+                "View Retrieved Text";
+
+        }
+
+        else {
+
+            element.style.display =
+                "block";
+
+            button.textContent =
+                "Hide Retrieved Text";
+
+        }
+
+    }
+
+
+    /* =====================================================
+       FILE UPLOAD
+    ===================================================== */
+
+    async function uploadFile() {
+
+        const input =
+            document.getElementById(
+                "fileUpload"
+            );
+
+
+        const status =
+            document.getElementById(
+                "uploadStatus"
+            );
+
+
+        if (
+            !input.files
+            ||
+            input.files.length === 0
+        ) {
+
+            status.textContent =
+                "Please select a file.";
+
+            return;
+
+        }
+
+
+        const file =
+            input.files[0];
+
+
+        const allowedExtensions =
+            [
+                ".pdf",
+                ".txt",
+                ".docx"
+            ];
+
+
+        const lowerName =
+            file.name.toLowerCase();
+
+
+        const validType =
+            allowedExtensions.some(
+                function(extension) {
+
+                    return lowerName.endsWith(
+                        extension
+                    );
+
+                }
+            );
+
+
+        if (!validType) {
+
+            status.innerHTML = `
+                <div class="error-box">
+                    ❌ Unsupported file type.
+                    Please upload PDF, TXT or DOCX.
+                </div>
+            `;
+
+            return;
+
+        }
+
+
+        const formData =
+            new FormData();
+
+
+        formData.append(
+            "file",
+            file
+        );
+
+
+        status.innerHTML = `
+            <span class="spinner"></span>
+            Uploading document...
+            Please wait.
+        `;
+
+
+        try {
+
+            const response =
+                await fetch(
+
+                    API_URL
+                    + "/api/upload",
+
+                    {
+                        method:
+                            "POST",
+
+                        body:
+                            formData
+                    }
+
+                );
+
+
+            const rawText =
+                await response.text();
+
+
+            let data =
+                null;
+
+
+            try {
+
+                data =
+                    rawText
+                    ? JSON.parse(
+                        rawText
+                    )
+                    : {};
+
+            }
+
+            catch (jsonError) {
+
+                data = {
+                    error:
+                        rawText
+                        ||
+                        (
+                            "Backend returned HTTP "
+                            + response.status
+                            + "."
+                        )
+                };
+
+            }
+
+
+            if (!response.ok) {
+
+                const backendMessage =
+                    data.error
+                    ||
+                    data.detail
+                    ||
+                    data.message
+                    ||
+                    (
+                        "Upload failed with HTTP "
+                        + response.status
+                        + "."
+                    );
+
+
+                status.innerHTML = `
+                    <div class="error-box">
+                        ❌ ${escapeHtml(
+                            String(
+                                backendMessage
+                            )
+                        )}
+                    </div>
+                `;
+
+
+                console.error(
+                    "Upload HTTP error:",
+                    response.status,
+                    rawText
+                );
+
+
+                return;
+
+            }
+
+
+            if (data.error) {
+
+                status.innerHTML = `
+                    <div class="error-box">
+                        ❌ ${escapeHtml(
+                            String(
+                                data.error
+                            )
+                        )}
+                    </div>
+                `;
+
+
+                return;
+
+            }
+
+
+            if (data.warning) {
+
+                status.innerHTML = `
+                    <div class="warning-box">
+
+                        ⚠️
+                        ${escapeHtml(
+                            data.message
+                            ||
+                            "File uploaded."
+                        )}
+
+                        <br><br>
+
+                        ${escapeHtml(
+                            data.warning
+                        )}
+
+                    </div>
+                `;
+
+
+                input.value =
+                    "";
+
+
+                return;
+
+            }
+
+
+            /*
+               New background-indexing flow.
+
+               app.py returns a job_id immediately after
+               saving the uploaded file. The frontend then
+               polls /api/upload-status/{job_id} until the
+               document is completely indexed.
+            */
+
+            if (data.job_id) {
+
+                status.innerHTML = `
+                    <div class="warning-box">
+
+                        <span class="spinner"></span>
+
+                        ✅ File
+                        '${escapeHtml(file.name)}'
+                        uploaded successfully.
+
+                        <br><br>
+
+                        ⏳ Preparing document for indexing...
+
+                        <br>
+
+                        Please wait.
+
+                    </div>
+                `;
+
+
+                input.value =
+                    "";
+
+
+                monitorUploadJob(
+                    data.job_id,
+                    file.name
+                );
+
+
+                return;
+
+            }
+
+
+            /*
+               Backward-compatible success handling if the
+               backend does not return a job_id.
+            */
+
+            let message =
+                "✅ "
+                +
+                escapeHtml(
+                    data.message
+                    ||
+                    "Upload successful."
+                );
+
+
+            if (
+                data.chunks_added
+                !== undefined
+            ) {
+
+                message +=
+                    "<br>📚 "
+                    +
+                    escapeHtml(
+                        String(
+                            data.chunks_added
+                        )
+                    )
+                    +
+                    " chunks added.";
+
+            }
+
+
+            if (
+                data.searchable
+            ) {
+
+                message +=
+                    "<br>🔎 Document is now searchable.";
+
+            }
+
+
+            status.innerHTML = `
+                <div class="success-box">
+                    ${message}
+                </div>
+            `;
+
+
+            input.value =
+                "";
+
+        }
+
+        catch (error) {
+
+            let message =
+                "Unable to connect to FastAPI backend.";
+
+
+            if (
+                error
+                &&
+                error.message
+            ) {
+
+                message +=
+                    " "
+                    +
+                    error.message;
+
+            }
+
+
+            status.innerHTML = `
+                <div class="error-box">
+                    ❌ ${escapeHtml(message)}
+                </div>
+            `;
+
+
+            console.error(
+                "Upload error:",
+                error
+            );
+
+        }
+
+    }
+
+
+    /* =====================================================
+       MONITOR BACKGROUND DOCUMENT INDEXING
+    ===================================================== */
+
+    function monitorUploadJob(
+        jobId,
+        filename
+    ) {
+
+        const status =
+            document.getElementById(
+                "uploadStatus"
+            );
+
+
+        const timer =
+            setInterval(
+
+                async function() {
+
+                    try {
+
+                        const response =
+                            await fetch(
+
+                                API_URL
+                                + "/api/upload-status/"
+                                + encodeURIComponent(
+                                    jobId
+                                )
+
+                            );
+
+
+                        const rawText =
+                            await response.text();
+
+
+                        let data =
+                            null;
+
+
+                        try {
+
+                            data =
+                                rawText
+                                ? JSON.parse(
+                                    rawText
+                                )
+                                : {};
+
+                        }
+
+                        catch (jsonError) {
+
+                            data = {
+                                error:
+                                    rawText
+                                    ||
+                                    (
+                                        "Backend returned HTTP "
+                                        + response.status
+                                        + "."
+                                    )
+                            };
+
+                        }
+
+
+                        if (!response.ok) {
+
+                            clearInterval(
+                                timer
+                            );
+
+
+                            status.innerHTML = `
+                                <div class="error-box">
+
+                                    ❌ Unable to check
+                                    document indexing status.
+
+                                    <br><br>
+
+                                    ${escapeHtml(
+                                        String(
+                                            data.error
+                                            ||
+                                            data.detail
+                                            ||
+                                            (
+                                                "HTTP "
+                                                + response.status
+                                            )
+                                        )
+                                    )}
+
+                                </div>
+                            `;
+
+
+                            return;
+
+                        }
+
+
+                        if (
+                            data.status
+                            === "completed"
+                        ) {
+
+                            clearInterval(
+                                timer
+                            );
+
+
+                            status.innerHTML = `
+                                <div class="success-box">
+
+                                    ✅ File
+                                    '${escapeHtml(filename)}'
+                                    indexed successfully.
+
+                                    <br><br>
+
+                                    📚
+                                    ${escapeHtml(
+                                        String(
+                                            data.chunks
+                                            ||
+                                            0
+                                        )
+                                    )}
+                                    chunks added.
+
+                                    <br>
+
+                                    ⏱ Indexing time:
+                                    ${escapeHtml(
+                                        String(
+                                            data.elapsed_seconds
+                                            ||
+                                            0
+                                        )
+                                    )}
+                                    seconds.
+
+                                    <br>
+
+                                    🔎 Document is now searchable.
+
+                                </div>
+                            `;
+
+
+                            return;
+
+                        }
+
+
+                        if (
+                            data.status
+                            === "failed"
+                        ) {
+
+                            clearInterval(
+                                timer
+                            );
+
+
+                            status.innerHTML = `
+                                <div class="error-box">
+
+                                    ❌ Document indexing failed.
+
+                                    <br><br>
+
+                                    ${escapeHtml(
+                                        data.message
+                                        ||
+                                        "Unknown indexing error."
+                                    )}
+
+                                    <br><br>
+
+                                    ⏱ Elapsed time:
+                                    ${escapeHtml(
+                                        String(
+                                            data.elapsed_seconds
+                                            ||
+                                            0
+                                        )
+                                    )}
+                                    seconds.
+
+                                </div>
+                            `;
+
+
+                            return;
+
+                        }
+
+
+                        if (
+                            data.status
+                            === "unknown"
+                        ) {
+
+                            clearInterval(
+                                timer
+                            );
+
+
+                            status.innerHTML = `
+                                <div class="error-box">
+
+                                    ❌ Upload job was not found.
+
+                                </div>
+                            `;
+
+
+                            return;
+
+                        }
+
+
+                        status.innerHTML = `
+                            <div class="warning-box">
+
+                                <span class="spinner"></span>
+
+                                ✅ File uploaded successfully.
+
+                                <br><br>
+
+                                ⏳ ${escapeHtml(
+                                    data.message
+                                    ||
+                                    "Indexing document..."
+                                )}
+
+                                <br><br>
+
+                                ${
+                                    data.total_pages
+                                    ? (
+                                        "📄 Page "
+                                        + escapeHtml(
+                                            String(
+                                                data.current_page
+                                                || 0
+                                            )
+                                        )
+                                        + " / "
+                                        + escapeHtml(
+                                            String(
+                                                data.total_pages
+                                            )
+                                        )
+                                        + "<br>"
+                                        + "📊 Progress: "
+                                        + escapeHtml(
+                                            String(
+                                                data.progress_percent
+                                                || 0
+                                            )
+                                        )
+                                        + "%"
+                                        + "<br>"
+                                    )
+                                    : ""
+                                }
+
+                                📚 Chunks indexed:
+                                ${escapeHtml(
+                                    String(
+                                        data.chunks
+                                        ||
+                                        0
+                                    )
+                                )}
+
+                                <br>
+
+                                ⏱ Elapsed time:
+                                ${escapeHtml(
+                                    String(
+                                        data.elapsed_seconds
+                                        ||
+                                        0
+                                    )
+                                )}
+                                seconds.
+
+                                <br><br>
+
+                                The job state is stored
+                                persistently and can resume
+                                after a Railway restart.
+
+                            </div>
+                        `;
+
+                    }
+
+                    catch (error) {
+
+                        console.error(
+                            "Upload status error:",
+                            error
+                        );
+
+                    }
+
+                },
+
+                2000
+
+            );
+
+    }
+
+
+    /* =====================================================
+       CLEAR UPLOAD
+    ===================================================== */
+
+    function clearUpload() {
+
+        document.getElementById(
+            "fileUpload"
+        ).value = "";
+
+        document.getElementById(
+            "uploadStatus"
+        ).innerHTML = "";
+
+    }
+
+
+    /* =====================================================
+       SEARCH AYURVEDA CENTRES
+    ===================================================== */
+
+    async function searchAyurvedaCentres() {
+
+        const location =
+            document
+                .getElementById(
+                    "centreLocation"
+                )
+                .value
+                .trim();
+
+
+        const status =
+            document.getElementById(
+                "centreStatus"
+            );
+
+
+        const resultsBox =
+            document.getElementById(
+                "centreResults"
+            );
+
+
+        const mapSection =
+            document.getElementById(
+                "mapSection"
+            );
+
+
+        if (!location) {
+
+            status.textContent =
+                "Please enter a city, state or location.";
+
+            return;
+
+        }
+
+
+        lastCentreSearchLocation =
+            location;
+
+
+        status.innerHTML = `
+            <span class="spinner"></span>
+            Searching Ayurveda centres...
+        `;
+
+
+        resultsBox.innerHTML =
+            "";
+
+
+        mapSection.style.display =
+            "none";
+
+
+        currentMapUrl =
+            "";
+
+
+        try {
+
+            const response =
+                await fetch(
+
+                    API_URL
+                    + "/api/ayurveda-centres",
+
+                    {
+
+                        method:
+                            "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body:
+                            JSON.stringify({
+                                location:
+                                    location,
+                                latitude:
+                                    null,
+                                longitude:
+                                    null
+                            })
+
+                    }
+
+                );
+
+
+            const data =
+                await response.json();
+
+
+            showCentreResults(
+                data,
+                location
+            );
+
+        }
+
+        catch (error) {
+
+            status.textContent =
+                "❌ Unable to search Ayurveda centres.";
+
+            console.error(
+                error
+            );
+
+        }
+
+    }
+
+
+    /* =====================================================
+       NEAR ME
+    ===================================================== */
+
+    function searchNearMe() {
+
+        const status =
+            document.getElementById(
+                "centreStatus"
+            );
+
+
+        if (
+            !navigator.geolocation
+        ) {
+
+            status.textContent =
+                "Geolocation is not supported by this browser.";
+
+            return;
+
+        }
+
+
+        lastCentreSearchLocation =
+            "your current location";
+
+
+        status.innerHTML = `
+            <span class="spinner"></span>
+            Getting your current location...
+        `;
+
+
+        navigator.geolocation
+            .getCurrentPosition(
+
+
+                async function(
+                    position
+                ) {
+
+                    const latitude =
+                        position.coords.latitude;
+
+
+                    const longitude =
+                        position.coords.longitude;
+
+
+                    status.innerHTML = `
+                        <span class="spinner"></span>
+                        Searching nearby Ayurveda centres...
+                    `;
+
+
+                    try {
+
+                        const response =
+                            await fetch(
+
+                                API_URL
+                                + "/api/ayurveda-centres",
+
+                                {
+
+                                    method:
+                                        "POST",
+
+                                    headers: {
+                                        "Content-Type":
+                                            "application/json"
+                                    },
+
+                                    body:
+                                        JSON.stringify({
+                                            location:
+                                                "Ayurveda centre",
+                                            latitude:
+                                                latitude,
+                                            longitude:
+                                                longitude
+                                        })
+
+                                }
+
+                            );
+
+
+                        const data =
+                            await response.json();
+
+
+                        showCentreResults(
+                            data,
+                            "your current location"
+                        );
+
+                    }
+
+                    catch (
+                        error
+                    ) {
+
+                        status.textContent =
+                            "❌ Nearby search failed.";
+
+                        console.error(
+                            error
+                        );
+
+                    }
+
+                },
+
+
+                function(
+                    error
+                ) {
+
+                    if (
+                        error.code === 1
+                    ) {
+
+                        status.textContent =
+                            "❌ Location permission was denied.";
+
+                    }
+
+                    else {
+
+                        status.textContent =
+                            "❌ Unable to get your location.";
+
+                    }
+
+                }
+
+            );
+
+    }
+
+
+    /* =====================================================
+       CLEAR CENTRE SEARCH
+    ===================================================== */
+
+    function clearCentreSearch() {
+
+        document.getElementById(
+            "centreLocation"
+        ).value = "";
+
+        document.getElementById(
+            "centreStatus"
+        ).innerHTML = "";
+
+        document.getElementById(
+            "centreResults"
+        ).innerHTML = "";
+
+        document.getElementById(
+            "mapSection"
+        ).style.display = "none";
+
+        document.getElementById(
+            "searchMap"
+        ).src = "";
+
+        currentMapUrl =
+            "";
+
+        lastCentreSearchLocation =
+            "";
+
+    }
+
+
+    /* =====================================================
+       DISPLAY CENTRES
+    ===================================================== */
+
+    function showCentreResults(
+        data,
+        searchedLocation
+    ) {
+
+        const status =
+            document.getElementById(
+                "centreStatus"
+            );
+
+
+        const resultsBox =
+            document.getElementById(
+                "centreResults"
+            );
+
+
+        const mapSection =
+            document.getElementById(
+                "mapSection"
+            );
+
+
+        resultsBox.innerHTML =
+            "";
+
+
+        mapSection.style.display =
+            "none";
+
+
+        if (
+            data.status
+            !== "success"
+        ) {
+
+            status.textContent =
+                "❌ "
+                +
+                (
+                    data.message
+                    ||
+                    "Search failed."
+                );
+
+            return;
+
+        }
+
+
+        if (
+            !data.results
+            ||
+            data.results.length === 0
+        ) {
+
+            status.textContent =
+                "No Ayurveda centres were found.";
+
+            return;
+
+        }
+
+
+        const label =
+            searchedLocation
+            ||
+            lastCentreSearchLocation
+            ||
+            "the selected location";
+
+
+        status.textContent =
+            "✅ "
+            +
+            data.results.length
+            +
+            " Ayurveda centres found in "
+            +
+            label
+            +
+            ".";
+
+
+        /* --------------------------------------------
+           SHOW FIRST RESULT ON MAP
+        -------------------------------------------- */
+
+        const firstCentre =
+            data.results.find(
+
+                function(place) {
+
+                    return (
+
+                        place.latitude
+                        !== null
+                        &&
+                        place.latitude
+                        !== undefined
+                        &&
+                        place.longitude
+                        !== null
+                        &&
+                        place.longitude
+                        !== undefined
+
+                    );
+
+                }
+
+            );
+
+
+        if (
+            firstCentre
+        ) {
+
+            showSearchMap(
+
+                firstCentre.latitude,
+
+                firstCentre.longitude,
+
+                firstCentre.name,
+
+                firstCentre.address
+
+            );
+
+        }
+
+
+        /* --------------------------------------------
+           RESULT CARDS
+        -------------------------------------------- */
+
+        data.results.forEach(
+
+            function(place) {
+
+                const card =
+                    document.createElement(
+                        "div"
+                    );
+
+
+                card.className =
+                    "centre-card";
+
+
+                let ratingHtml =
+                    "";
+
+
+                if (
+                    place.rating
+                ) {
+
+                    ratingHtml = `
+                        <div class="centre-info">
+
+                            <span class="rating">
+                                ⭐
+                                ${escapeHtml(
+                                    String(
+                                        place.rating
+                                    )
+                                )}
+                            </span>
+
+                            ${
+                                place.reviews
+                                ?
+                                " (" +
+                                escapeHtml(
+                                    String(
+                                        place.reviews
+                                    )
+                                )
+                                +
+                                " reviews)"
+                                :
+                                ""
+                            }
+
+                        </div>
+                    `;
+
+                }
+
+
+                let phoneHtml =
+                    "";
+
+
+                if (
+                    place.phone
+                ) {
+
+                    phoneHtml = `
+                        <div class="centre-info">
+                            📞
+                            ${escapeHtml(
+                                place.phone
+                            )}
+                        </div>
+                    `;
+
+                }
+
+
+                let typeHtml =
+                    "";
+
+
+                if (
+                    place.type
+                ) {
+
+                    typeHtml = `
+                        <div class="centre-info">
+                            🏥
+                            ${escapeHtml(
+                                place.type
+                            )}
+                        </div>
+                    `;
+
+                }
+
+
+                let directionHtml =
+                    "";
+
+
+                if (
+                    place.latitude !== null
+                    &&
+                    place.latitude !== undefined
+                    &&
+                    place.longitude !== null
+                    &&
+                    place.longitude !== undefined
+                ) {
+
+                    const directionsUrl =
+                        "https://www.google.com/maps/dir/?api=1"
+                        +
+                        "&destination="
+                        +
+                        encodeURIComponent(
+                            place.latitude
+                            +
+                            ","
+                            +
+                            place.longitude
+                        );
+
+
+                    directionHtml = `
+                        <a
+                            class="direction-btn"
+                            href="${directionsUrl}"
+                            target="_blank"
+                            rel="noopener noreferrer">
+
+                            📍 Directions
+
+                        </a>
+                    `;
+
+                }
+
+
+                else if (
+                    place.maps_link
+                ) {
+
+                    directionHtml = `
+                        <a
+                            class="direction-btn"
+                            href="${escapeHtml(
+                                place.maps_link
+                            )}"
+                            target="_blank"
+                            rel="noopener noreferrer">
+
+                            📍 Directions
+
+                        </a>
+                    `;
+
+                }
+
+
+                let websiteHtml =
+                    "";
+
+
+                if (
+                    place.website
+                ) {
+
+                    websiteHtml = `
+                        <a
+                            class="website-btn"
+                            href="${escapeHtml(
+                                place.website
+                            )}"
+                            target="_blank"
+                            rel="noopener noreferrer">
+
+                            🌐 Website
+
+                        </a>
+                    `;
+
+                }
+
+
+                card.innerHTML = `
+
+                    <h3>
+                        🌿
+                        ${escapeHtml(
+                            place.name
+                            ||
+                            "Ayurveda Centre"
+                        )}
+                    </h3>
+
+                    <div class="centre-info">
+                        📍
+                        ${escapeHtml(
+                            place.address
+                            ||
+                            "Address not available"
+                        )}
+                    </div>
+
+                    ${typeHtml}
+
+                    ${ratingHtml}
+
+                    ${phoneHtml}
+
+                    <div class="centre-actions">
+                        ${directionHtml}
+                        ${websiteHtml}
+                    </div>
+
+                `;
+
+
+                if (
+                    place.latitude !== null
+                    &&
+                    place.latitude !== undefined
+                    &&
+                    place.longitude !== null
+                    &&
+                    place.longitude !== undefined
+                ) {
+
+                    card.style.cursor =
+                        "pointer";
+
+
+                    card.addEventListener(
+
+                        "click",
+
+                        function(event) {
+
+                            if (
+                                event.target.tagName
+                                === "A"
+                            ) {
+                                return;
+                            }
+
+
+                            showSearchMap(
+
+                                place.latitude,
+
+                                place.longitude,
+
+                                place.name,
+
+                                place.address
+
+                            );
+
+
+                            document
+                                .getElementById(
+                                    "mapSection"
+                                )
+                                .scrollIntoView({
+
+                                    behavior:
+                                        "smooth",
+
+                                    block:
+                                        "center"
+
+                                });
+
+                        }
+
+                    );
+
+                }
+
+
+                resultsBox.appendChild(
+                    card
+                );
+
+            }
+
+        );
+
+    }
+
+
+    /* =====================================================
+       SHOW GOOGLE MAP
+    ===================================================== */
+
+    function showSearchMap(
+        latitude,
+        longitude,
+        name,
+        address
+    ) {
+
+        if (
+            latitude === null
+            ||
+            latitude === undefined
+            ||
+            longitude === null
+            ||
+            longitude === undefined
+        ) {
+            return;
+        }
+
+
+        const mapSection =
+            document.getElementById(
+                "mapSection"
+            );
+
+
+        const map =
+            document.getElementById(
+                "searchMap"
+            );
+
+
+        const mapLocationText =
+            document.getElementById(
+                "mapLocationText"
+            );
+
+
+        let searchText =
+            name
+            ||
+            "Ayurveda Centre";
+
+
+        if (
+            address
+        ) {
+
+            searchText +=
+                " "
+                +
+                address;
+
+        }
+
+
+        const query =
+            encodeURIComponent(
+                searchText
+            );
+
+
+        map.src =
+            "https://maps.google.com/maps"
+            +
+            "?q="
+            +
+            query
+            +
+            "&z=15"
+            +
+            "&output=embed";
+
+
+        currentMapUrl =
+            "https://www.google.com/maps/search/"
+            +
+            "?api=1"
+            +
+            "&query="
+            +
+            query;
+
+
+        mapLocationText.textContent =
+            name
+            ||
+            "Ayurveda centre location";
+
+
+        mapSection.style.display =
+            "block";
+
+    }
+
+
+    /* =====================================================
+       OPEN GOOGLE MAPS
+    ===================================================== */
+
+    function openCurrentMap() {
+
+        if (
+            !currentMapUrl
+        ) {
+            return;
+        }
+
+
+        window.open(
+            currentMapUrl,
+            "_blank",
+            "noopener,noreferrer"
+        );
+
+    }
+
+
+    /* =====================================================
+       BACK TO TOP
+    ===================================================== */
+
+    window.addEventListener(
+        "scroll",
+
+        function() {
+
+            const button =
+                document.getElementById(
+                    "backToTop"
+                );
+
+
+            if (
+                window.scrollY > 500
+            ) {
+
+                button.style.display =
+                    "flex";
+
+            }
+
+            else {
+
+                button.style.display =
+                    "none";
+
+            }
+
+        }
+
+    );
+
+
+    function scrollToTop() {
+
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth"
+        });
+
+    }
+
+
+    /* =====================================================
+       ESCAPE HTML
+    ===================================================== */
+
+    function escapeHtml(
+        text
+    ) {
+
+        if (
+            text === null
+            ||
+            text === undefined
+        ) {
+
+            return "";
+
+        }
+
+
+        const element =
+            document.createElement(
+                "div"
+            );
+
+
+        element.textContent =
+            String(
+                text
+            );
+
+
+        return element.innerHTML;
+
+    }
+
+
+    /* =====================================================
+       QUESTION BUTTON EVENTS
+    ===================================================== */
+
+    /* =====================================================
+       QUESTION KEYBOARD EVENT
+    ===================================================== */
+
+    function bindQuestionEvents() {
+
+        const questionInput =
+            document.getElementById(
+                "questionInput"
+            );
+
+        if (questionInput) {
+
+            questionInput.addEventListener(
+                "keydown",
+                function(event) {
+
+                    if (
+                        event.key === "Enter"
+                    ) {
+                        event.preventDefault();
+                        askQuestion();
+                    }
+
+                }
+            );
+
+        }
+
+    }
+
+
+    if (
+        document.readyState
+        === "loading"
+    ) {
+
+        document.addEventListener(
+            "DOMContentLoaded",
+            bindQuestionEvents
+        );
+
+    }
+
+    else {
+
+        bindQuestionEvents();
+
+    }
+
+
+    /* =====================================================
+       ENTER KEY - CENTRE SEARCH
+    ===================================================== */
+
+    document
+        .getElementById(
+            "centreLocation"
+        )
+        .addEventListener(
+
+            "keydown",
+
+            function(event) {
+
+                if (
+                    event.key
+                    === "Enter"
+                ) {
+
+                    searchAyurvedaCentres();
+
+                }
+
+            }
+
+        );
+
+
+</script>
+
+
+</body>
+
+</html>

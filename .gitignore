@@ -1,0 +1,21 @@
+.env
+venv/
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.DS_Store
+
+# Permanent source PDFs stay only on your computer.
+local_pdfs/
+*.pdf
+
+# Runtime data
+chroma_db/
+uploaded_files/
+uploaded_text/
+.env
+venv/
+.venv/
+
